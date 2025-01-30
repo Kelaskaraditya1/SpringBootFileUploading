@@ -1,6 +1,7 @@
 package com.StarkIndustries.SpringBootFileUploading.Controller;
 
 import ch.qos.logback.core.util.FileSize;
+import com.StarkIndustries.SpringBootFileUploading.Cloudinary.Service.CloudinaryUploadService;
 import com.StarkIndustries.SpringBootFileUploading.Utility.FileUploadHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,11 +13,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.util.Map;
+
 @RestController
 public class Controller {
 
     @Autowired
     public FileUploadHelper fileUploadHelper;
+
+    @Autowired
+    public CloudinaryUploadService cloudinaryUploadService;
 
     @GetMapping("/greetings")
     public String greetings(){
@@ -47,5 +53,16 @@ public class Controller {
             fileUploadHelper.uploadFile(file);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(ServletUriComponentsBuilder.fromCurrentContextPath().path("/Images/").path(file.getOriginalFilename()).toUriString());
         }
+    }
+
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<Map> uploadImage(@RequestParam("image")MultipartFile file){
+        Map map = this.cloudinaryUploadService.uploadImage(file);
+        if(map!=null){
+            System.out.println(map.get("secure_url"));
+            return ResponseEntity.status(HttpStatus.OK).body(map);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 }
